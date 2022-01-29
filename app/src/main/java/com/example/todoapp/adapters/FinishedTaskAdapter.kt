@@ -31,6 +31,10 @@ class FinishedTaskAdapter(private val listener: FinishedItemClickListener) : Rec
             listener.onDeleteButtonClicked(viewHolder.adapterPosition)
         }
 
+        viewHolder.unDoneBtn.setOnClickListener {
+            listener.onUnDoneButtonClicked(viewHolder.adapterPosition)
+        }
+
         viewHolder.arrow.setOnClickListener {
             if (viewHolder.listItemBody.visibility == View.GONE) {
                 viewHolder.listItemBody.visibility = View.VISIBLE
@@ -65,14 +69,16 @@ class FinishedTaskAdapter(private val listener: FinishedItemClickListener) : Rec
 }
 
 class FinishedTaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
-    val listItemTitle: CardView = itemView.findViewById(R.id.accordian_title)
+    val listItemTitle: RelativeLayout = itemView.findViewById(R.id.accordian_title)
     val arrow: ImageView = itemView.findViewById(R.id.arrow)
     val title: TextView = itemView.findViewById(R.id.task_title)
     val listItemBody: RelativeLayout = itemView.findViewById(R.id.accordian_body)
     val description: TextView = itemView.findViewById(R.id.task_description)
     val deleteBtn: ImageView = itemView.findViewById(R.id.deleteBtn)
+    val unDoneBtn: ImageView = itemView.findViewById(R.id.unDoneBtn)
 }
 
 interface FinishedItemClickListener {
     fun onDeleteButtonClicked(position: Int)
+    fun onUnDoneButtonClicked(position: Int)
 }

@@ -26,6 +26,7 @@ import com.example.todoapp.models.TodoModel
 import com.example.todoapp.ui.dialog.DialogButtonClicked
 import com.example.todoapp.ui.dialog.MyDialog
 import com.example.todoapp.utilService.SharedPreferenceClass
+import com.google.android.material.snackbar.Snackbar
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException
@@ -87,7 +88,7 @@ class FinishedTaskFragment : Fragment(), FinishedItemClickListener, DialogButton
 
     private fun getTask() {
         todoList = ArrayList()
-//        progressBar.visibility = View.VISIBLE
+        progressBar.visibility = View.VISIBLE
         val url = "https://todoapplicationxyz.herokuapp.com/api/todo/finished"
         Log.d(TAG, "Executed with token $token")
         val jsonObjectRequest = object : JsonObjectRequest(
@@ -196,6 +197,38 @@ class FinishedTaskFragment : Fragment(), FinishedItemClickListener, DialogButton
         requestQueue.add(jsonObjectRequest)
     }
 
+    private fun unDoneTodo(unDoneId: String) {
+        val url = "https://todoapplicationxyz.herokuapp.com/api/todo/$unDoneId"
+
+        val body = HashMap<String, Boolean>()
+        body["finished"] = false
+
+        val jsonObjectRequest = object : JsonObjectRequest(Method.PUT, url, JSONObject(body as Map<*, *>?), { response ->
+            try {
+                if (response.getBoolean("success")) {
+                    getTask()
+                    Snackbar.make(binding.root, "Task undone", Snackbar.LENGTH_SHORT).show()
+                }
+            } catch (je : JSONException) {
+                je.printStackTrace()
+            }
+        }, { error ->
+            Snackbar.make(binding.root, "Something went wrong because ${error.message}", Snackbar.LENGTH_SHORT).show()
+        }) {
+            override fun getHeaders(): MutableMap<String, String> {
+                val params = HashMap<String, String>()
+                params["Content-Type"] = "application/json"
+                params["Authorization"] = token
+                return params
+            }
+        }
+
+        jsonObjectRequest.retryPolicy = DefaultRetryPolicy(10000, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT)
+
+        val requestQueue = Volley.newRequestQueue(context)
+        requestQueue.add(jsonObjectRequest)
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -205,6 +238,10 @@ class FinishedTaskFragment : Fragment(), FinishedItemClickListener, DialogButton
     override fun onDeleteButtonClicked(position: Int) {
         deleteId = todoList[position].id
         fragmentManager?.let { dialog.show(it, dialog.TODO_DELETE_DIALOG) }
+    }
+
+    override fun onUnDoneButtonClicked(position: Int) {
+        unDoneTodo(todoList[position].id)
     }
 
     //    Dialog button functionalities
